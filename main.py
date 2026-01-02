@@ -84,7 +84,12 @@ app = FastAPI(title="Gestor Financeiro Pessoal", version="1.0.0")
 # --- CONFIGURAÇÃO DO CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://gestao-financeira-two.vercel.app",
+        "*"  # Remove isso depois em produção
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
