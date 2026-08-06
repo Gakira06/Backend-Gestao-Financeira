@@ -1,20 +1,13 @@
-# Python
-__pycache__/
-*.py[cod]
-*.sqlite3
-*.db
 .env
-venv/
 .env.*
 *.log
+
+# Node
+node_modules/
+npm-debug.log*
 
 # VSCode
 .vscode/
 
 # macOS
 .DS_Store
-
-# Python packaging
-build/
-dist/
-*.egg-info/

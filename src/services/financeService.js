@@ -155,6 +155,51 @@ export async function createCategory(data) {
   });
 }
 
+export async function listTransactions(filters = {}) {
+  const where = {};
+
+  if (filters.walletId) {
+    where.walletId = parseId(filters.walletId, 'walletId');
+  }
+
+  if (filters.categoryId) {
+    where.categoryId = parseId(filters.categoryId, 'categoryId');
+  }
+
+  if (filters.status && filters.status !== 'Todos') {
+    assertAllowed(filters.status, VALID_TRANSACTION_STATUS, 'status');
+    where.status = filters.status;
+  }
+
+  if (filters.search) {
+    where.description = { contains: filters.search, mode: 'insensitive' };
+  }
+
+  if (filters.startDate || filters.endDate) {
+    where.dueDate = {};
+
+    if (filters.startDate) {
+      where.dueDate.gte = parseRequiredDate(filters.startDate, 'startDate');
+    }
+
+    if (filters.endDate) {
+      where.dueDate.lte = parseRequiredDate(filters.endDate, 'endDate');
+    }
+  } else if (filters.month && filters.year) {
+    const month = Number(filters.month);
+    const year = Number(filters.year);
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 1);
+    where.dueDate = { gte: start, lt: end };
+  }
+
+  return prisma.transaction.findMany({
+    where,
+    include: { wallet: true, category: true },
+    orderBy: { dueDate: 'desc' },
+  });
+}
+
 export async function createTransaction(data) {
   const walletId = parseId(data.walletId, 'walletId');
   const categoryId = parseId(data.categoryId, 'categoryId');

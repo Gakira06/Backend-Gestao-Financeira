@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Wallet {
+  id           Int           @id @default(autoincrement())
+  name         String
+  type         String
+  balance      Float         @default(0)
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+
+  @@map("wallets")
+}
+
+model Category {
+  id           Int           @id @default(autoincrement())
+  name         String
+  type         String
+  colorHex     String
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+
+  @@map("categories")
+}
+
+model Transaction {
+  id          Int       @id @default(autoincrement())
+  description String
+  amount      Float
+  type        String
+  status      String    @default("Pendente")
+  dueDate     DateTime
+  paymentDate DateTime?
+  createdAt   DateTime  @default(now())
+
+  walletId    Int
+  wallet      Wallet    @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  categoryId  Int
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@map("transactions")
+  @@index([dueDate])
+  @@index([status])
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  status      String    @default("A Fazer")
+  priority    String    @default("Média")
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("tasks")
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime @default(now())
+
+  @@map("events")
+}

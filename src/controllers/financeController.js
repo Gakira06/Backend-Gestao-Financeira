@@ -36,6 +36,15 @@ export async function createCategory(request, response, next) {
   }
 }
 
+export async function listTransactions(request, response, next) {
+  try {
+    const transactions = await financeService.listTransactions(request.query);
+    return response.json(transactions);
+  } catch (error) {
+    return next(error);
+  }
+}
+
 export async function createTransaction(request, response, next) {
   try {
     const transaction = await financeService.createTransaction(request.body);
