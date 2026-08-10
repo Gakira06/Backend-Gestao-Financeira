@@ -18,6 +18,24 @@ export async function createWallet(request, response, next) {
   }
 }
 
+export async function updateWallet(request, response, next) {
+  try {
+    const wallet = await financeService.updateWallet(request.params.id, request.body);
+    return response.json(wallet);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function deleteWallet(request, response, next) {
+  try {
+    const result = await financeService.deleteWallet(request.params.id);
+    return response.json(result);
+  } catch (error) {
+    return next(error);
+  }
+}
+
 export async function listCategories(request, response, next) {
   try {
     const categories = await financeService.listCategories();

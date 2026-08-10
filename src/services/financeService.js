@@ -129,6 +129,65 @@ export async function createWallet(data) {
   });
 }
 
+export async function updateWallet(id, data) {
+  const walletId = parseId(id);
+  const updateData = {};
+
+  if (data.name !== undefined) {
+    const name = data.name?.trim();
+
+    if (!name) {
+      throw createHttpError(400, 'name nao pode ser vazio.');
+    }
+
+    updateData.name = name;
+  }
+
+  if (data.type !== undefined) {
+    assertAllowed(data.type, VALID_WALLET_TYPES, 'type');
+    updateData.type = data.type;
+  }
+
+  if (data.balance !== undefined) {
+    const balance = Number(data.balance);
+
+    if (!Number.isFinite(balance)) {
+      throw createHttpError(400, 'balance deve ser um numero valido.');
+    }
+
+    updateData.balance = balance;
+  }
+
+  try {
+    return await prisma.wallet.update({ where: { id: walletId }, data: updateData });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      throw createHttpError(404, 'Conta nao encontrada.');
+    }
+
+    throw error;
+  }
+}
+
+export async function deleteWallet(id) {
+  const walletId = parseId(id);
+
+  try {
+    await prisma.wallet.delete({ where: { id: walletId } });
+    return { message: 'Conta deletada com sucesso.' };
+  } catch (error) {
+    if (error.code === 'P2025') {
+      throw createHttpError(404, 'Conta nao encontrada.');
+    }
+
+    if (error.code === 'P2003') {
+      throw createHttpError(409, 'Nao e possivel excluir uma conta com transacoes vinculadas.');
+    }
+
+    throw error;
+  }
+}
+
 export async function listCategories() {
   return prisma.category.findMany({
     orderBy: [{ type: 'asc' }, { name: 'asc' }],

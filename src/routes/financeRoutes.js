@@ -4,17 +4,21 @@ import {
   createTransaction,
   createWallet,
   deleteTransaction,
+  deleteWallet,
   getDashboard,
   listCategories,
   listTransactions,
   listWallets,
   payTransaction,
+  updateWallet,
 } from '../controllers/financeController.js';
 
 const router = Router();
 
 router.get('/wallets', listWallets);
 router.post('/wallets', createWallet);
+router.patch('/wallets/:id', updateWallet);
+router.delete('/wallets/:id', deleteWallet);
 
 router.get('/categories', listCategories);
 router.post('/categories', createCategory);
