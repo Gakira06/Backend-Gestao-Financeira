@@ -2,6 +2,9 @@ import prisma from '../config/database.js';
 
 const VALID_TASK_STATUS = ['A Fazer', 'Em Andamento', 'Concluído'];
 const VALID_TASK_PRIORITIES = ['Baixa', 'Média', 'Alta'];
+const VALID_TASK_COLORS = ['Verde', 'Amarelo', 'Vermelho'];
+const PRIORITY_COLOR_MAP = { Baixa: 'Verde', Média: 'Amarelo', Alta: 'Vermelho' };
+const PRIORITY_WEIGHT = { Alta: 0, Média: 1, Baixa: 2 };
 
 function createHttpError(statusCode, message) {
   const error = new Error(message);
@@ -57,9 +60,15 @@ export async function listTasks(filters = {}) {
     where.status = filters.status;
   }
 
-  return prisma.task.findMany({
+  const tasks = await prisma.task.findMany({
     where,
-    orderBy: [{ dueDate: 'asc' }, { createdAt: 'desc' }],
+    orderBy: [{ order: 'asc' }, { dueDate: 'asc' }, { createdAt: 'desc' }],
+  });
+
+  return tasks.sort((a, b) => {
+    const weightDiff = PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority];
+    if (weightDiff !== 0) return weightDiff;
+    return a.order - b.order;
   });
 }
 
@@ -67,6 +76,7 @@ export async function createTask(data) {
   const title = data.title?.trim();
   const status = data.status || 'A Fazer';
   const priority = data.priority || 'Média';
+  const color = data.color || PRIORITY_COLOR_MAP[priority] || 'Amarelo';
 
   if (!title) {
     throw createHttpError(400, 'title e obrigatorio.');
@@ -74,6 +84,7 @@ export async function createTask(data) {
 
   assertAllowed(status, VALID_TASK_STATUS, 'status');
   assertAllowed(priority, VALID_TASK_PRIORITIES, 'priority');
+  assertAllowed(color, VALID_TASK_COLORS, 'color');
 
   return prisma.task.create({
     data: {
@@ -81,6 +92,8 @@ export async function createTask(data) {
       description: data.description?.trim() || null,
       status,
       priority,
+      color,
+      order: Number.isInteger(data.order) ? data.order : 0,
       dueDate: parseOptionalDate(data.dueDate, 'dueDate'),
     },
   });
@@ -112,6 +125,22 @@ export async function updateTask(id, data) {
   if (data.priority !== undefined) {
     assertAllowed(data.priority, VALID_TASK_PRIORITIES, 'priority');
     updateData.priority = data.priority;
+
+    if (data.color === undefined) {
+      updateData.color = PRIORITY_COLOR_MAP[data.priority];
+    }
+  }
+
+  if (data.color !== undefined) {
+    assertAllowed(data.color, VALID_TASK_COLORS, 'color');
+    updateData.color = data.color;
+  }
+
+  if (data.order !== undefined) {
+    if (!Number.isInteger(data.order)) {
+      throw createHttpError(400, 'order deve ser um numero inteiro.');
+    }
+    updateData.order = data.order;
   }
 
   if (data.dueDate !== undefined) {

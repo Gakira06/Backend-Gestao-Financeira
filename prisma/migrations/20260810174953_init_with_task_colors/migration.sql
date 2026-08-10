@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "tasks" ADD COLUMN     "color" TEXT NOT NULL DEFAULT 'Amarelo',
+ADD COLUMN     "order" INTEGER NOT NULL DEFAULT 0;

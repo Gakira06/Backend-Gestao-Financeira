@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Wallet {
@@ -56,6 +57,8 @@ model Task {
   description String?
   status      String    @default("A Fazer")
   priority    String    @default("Média")
+  color       String    @default("Amarelo")
+  order       Int       @default(0)
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
 

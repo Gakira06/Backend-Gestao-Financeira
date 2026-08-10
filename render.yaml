@@ -3,10 +3,12 @@ services:
     name: agenda-financeiro-backend
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && npx prisma migrate deploy
     startCommand: npm start
     envVars:
       - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
         sync: false
       - key: NODE_VERSION
         value: 22.21.1
